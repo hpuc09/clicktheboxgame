@@ -9,27 +9,50 @@
             margin: 0;
             overflow: hidden;
             background-color: #222;
+            text-align: center;
         }
         canvas {
             display: block;
             background: #333;
+            margin: auto;
+        }
+        #restartButton {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    <button id="restartButton" onclick="restartGame()">Restart</button>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
+        const restartButton = document.getElementById("restartButton");
         canvas.width = window.innerWidth;
         canvas.height = 400;
         
-        let player = { x: 50, y: 300, width: 30, height: 30, dy: 0, jumping: false };
-        let gravity = 0.6;
-        let jumpStrength = -12;
-        let obstacles = [];
-        let speed = 5;
-        let gameOver = false;
+        let player, obstacles, gravity, jumpStrength, speed, gameOver;
+        
+        function init() {
+            player = { x: 50, y: 300, width: 30, height: 30, dy: 0, jumping: false };
+            gravity = 0.6;
+            jumpStrength = -12;
+            obstacles = [];
+            speed = 5;
+            gameOver = false;
+            restartButton.style.display = "none";
+            gameLoop();
+        }
         
         function createObstacle() {
             let height = 50 + Math.random() * 50;
@@ -54,7 +77,7 @@
                     player.y + player.height > obstacle.y
                 ) {
                     gameOver = true;
-                    alert("Game Over! Refresh to Restart");
+                    restartButton.style.display = "block";
                 }
             });
             obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > 0);
@@ -69,9 +92,15 @@
         }
         
         function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
+            if (!gameOver) {
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function restartGame() {
+            init();
         }
         
         window.addEventListener("keydown", (e) => {
@@ -81,7 +110,7 @@
             }
         });
         
-        gameLoop();
+        init();
     </script>
 </body>
 </html>
