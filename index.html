@@ -5,56 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Click the Box Game</title>
     <style>
-        body {
-            text-align: center;
-            font-family: Arial, sans-serif;
-        }
-        #gameArea {
-            width: 400px;
-            height: 400px;
-            background-color: lightgray;
-            position: relative;
-            margin: auto;
-            overflow: hidden;
-        }
+        * { cursor: none; }
+        body { text-align: center; background-color: black; color: white; overflow: hidden; }
         #box {
-            width: 50px;
-            height: 50px;
-            background-color: red;
-            position: absolute;
-            cursor: pointer;
+            width: 50px; height: 50px;
+            background-color: red; position: absolute;
+        }
+        .crosshair {
+            position: absolute; width: 20px; height: 20px;
+            border: 2px solid white; border-radius: 50%;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <h1>Click the Box Game</h1>
+    <h1>Click the Box!</h1>
     <p>Score: <span id="score">0</span></p>
-    <div id="gameArea">
-        <div id="box"></div>
-    </div>
-
+    <div id="box"></div>
+    <div class="crosshair" id="crosshair"></div>
+    
     <script>
         let score = 0;
-        const box = document.getElementById("box");
-        const scoreDisplay = document.getElementById("score");
-        const gameArea = document.getElementById("gameArea");
-
+        let speed = 1000;
+        let box = document.getElementById("box");
+        let crosshair = document.getElementById("crosshair");
+        
         function moveBox() {
-            let maxX = gameArea.clientWidth - box.clientWidth;
-            let maxY = gameArea.clientHeight - box.clientHeight;
-            let randomX = Math.floor(Math.random() * maxX);
-            let randomY = Math.floor(Math.random() * maxY);
-            box.style.left = randomX + "px";
-            box.style.top = randomY + "px";
+            let x = Math.random() * (window.innerWidth - 50);
+            let y = Math.random() * (window.innerHeight - 50);
+            box.style.left = `${x}px`;
+            box.style.top = `${y}px`;
         }
-
-        box.addEventListener("click", function() {
+        
+        box.addEventListener("click", () => {
             score++;
-            scoreDisplay.textContent = score;
+            document.getElementById("score").textContent = score;
             moveBox();
         });
-
-        moveBox(); // Start the game
+        
+        document.addEventListener("mousemove", (e) => {
+            crosshair.style.left = `${e.clientX - 10}px`;
+            crosshair.style.top = `${e.clientY - 10}px`;
+        });
+        
+        setInterval(moveBox, speed);
+        setInterval(() => {
+            speed *= 0.9; 
+            clearInterval(moveBoxInterval);
+            moveBoxInterval = setInterval(moveBox, speed);
+        }, 10000);
+        
+        let moveBoxInterval = setInterval(moveBox, speed);
     </script>
 </body>
 </html>
