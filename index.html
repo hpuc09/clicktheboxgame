@@ -3,111 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Click The Box Game</title>
+    <title>Geometry Dash Clone</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: skyblue;
+            background-color: #222;
         }
-        #gameArea {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-        }
-        .box {
-            width: 50px;
-            height: 50px;
-            background-color: blue;
-            position: absolute;
-            cursor: pointer;
-        }
-        .cloud {
-            position: absolute;
-            width: 80px;
-            height: 60px;
-            background: url('https://upload.wikimedia.org/wikipedia/commons/3/34/Pixel-cloud.png') no-repeat center/contain;
-            opacity: 0.8;
-        }
-        .bot {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            background: url('https://upload.wikimedia.org/wikipedia/commons/3/3e/8-bit_Mario.png') no-repeat center/contain;
-        }
-        .crosshair {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: url('https://upload.wikimedia.org/wikipedia/commons/e/e6/Crosshair.png') no-repeat center/contain;
-            pointer-events: none;
-        }
-        #score {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 20px;
-            color: white;
+        canvas {
+            display: block;
+            background: #333;
         }
     </style>
 </head>
 <body>
-    <div id="score">Score: 0</div>
-    <div id="gameArea"></div>
+    <canvas id="gameCanvas"></canvas>
     <script>
-        const gameArea = document.getElementById("gameArea");
-        const scoreDisplay = document.getElementById("score");
-        const crosshair = document.createElement("div");
-        let score = 0;
-
-        // Setup crosshair
-        crosshair.classList.add("crosshair");
-        document.body.appendChild(crosshair);
-
-        document.addEventListener("mousemove", (event) => {
-            crosshair.style.left = `${event.clientX - 10}px`;
-            crosshair.style.top = `${event.clientY - 10}px`;
-        });
-
-        function spawnBox() {
-            const box = document.createElement("div");
-            box.classList.add("box");
-            box.style.left = `${Math.random() * (gameArea.clientWidth - 50)}px`;
-            box.style.top = `${Math.random() * (gameArea.clientHeight - 50)}px`;
-            box.addEventListener("click", () => {
-                score++;
-                scoreDisplay.textContent = `Score: ${score}`;
-                gameArea.removeChild(box);
-                spawnBox();
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = 400;
+        
+        let player = { x: 50, y: 300, width: 30, height: 30, dy: 0, jumping: false };
+        let gravity = 0.6;
+        let jumpStrength = -12;
+        let obstacles = [];
+        let speed = 5;
+        let gameOver = false;
+        
+        function createObstacle() {
+            let height = 50 + Math.random() * 50;
+            obstacles.push({ x: canvas.width, y: canvas.height - height, width: 30, height: height });
+        }
+        setInterval(createObstacle, 1500);
+        
+        function update() {
+            if (gameOver) return;
+            player.dy += gravity;
+            player.y += player.dy;
+            if (player.y + player.height > canvas.height) {
+                player.y = canvas.height - player.height;
+                player.jumping = false;
+            }
+            obstacles.forEach((obstacle, index) => {
+                obstacle.x -= speed;
+                if (
+                    player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y
+                ) {
+                    gameOver = true;
+                    alert("Game Over! Refresh to Restart");
+                }
             });
-            gameArea.appendChild(box);
+            obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > 0);
         }
-
-        function spawnClouds() {
-            for (let i = 0; i < 5; i++) {
-                const cloud = document.createElement("div");
-                cloud.classList.add("cloud");
-                cloud.style.left = `${Math.random() * 100}%`;
-                cloud.style.top = `${Math.random() * 30}%`;
-                gameArea.appendChild(cloud);
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "cyan";
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.fillStyle = "red";
+            obstacles.forEach(obstacle => ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height));
+        }
+        
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        window.addEventListener("keydown", (e) => {
+            if (e.code === "Space" && !player.jumping) {
+                player.dy = jumpStrength;
+                player.jumping = true;
             }
-        }
-
-        function spawnBots() {
-            for (let i = 0; i < 3; i++) {
-                const bot = document.createElement("div");
-                bot.classList.add("bot");
-                bot.style.left = `${Math.random() * (gameArea.clientWidth - 50)}px`;
-                bot.style.top = `${Math.random() * (gameArea.clientHeight - 50)}px`;
-                gameArea.appendChild(bot);
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            spawnBox();
-            spawnClouds();
-            spawnBots();
         });
+        
+        gameLoop();
     </script>
 </body>
 </html>
