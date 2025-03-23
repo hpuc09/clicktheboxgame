@@ -3,59 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Click the Box Game</title>
+    <title>Click The Box Game</title>
     <style>
-        * { cursor: none; }
-        body { text-align: center; background-color: black; color: white; overflow: hidden; }
-        #box {
-            width: 50px; height: 50px;
-            background-color: red; position: absolute;
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: skyblue;
+        }
+        #gameArea {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        .box {
+            width: 50px;
+            height: 50px;
+            background-color: blue;
+            position: absolute;
+            cursor: pointer;
+        }
+        .cloud {
+            width: 100px;
+            height: 60px;
+            background-color: white;
+            position: absolute;
+            opacity: 0.7;
+            border-radius: 50px;
+        }
+        .bot {
+            width: 50px;
+            height: 50px;
+            background-color: green;
+            position: absolute;
         }
         .crosshair {
-            position: absolute; width: 20px; height: 20px;
-            border: 2px solid white; border-radius: 50%;
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid red;
+            border-radius: 50%;
             pointer-events: none;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <h1>Click the Box!</h1>
-    <p>Score: <span id="score">0</span></p>
-    <div id="box"></div>
-    <div class="crosshair" id="crosshair"></div>
-    
+    <div id="score">Score: 0</div>
+    <div id="gameArea"></div>
     <script>
+        const gameArea = document.getElementById("gameArea");
+        const scoreDisplay = document.getElementById("score");
+        const crosshair = document.createElement("div");
         let score = 0;
-        let speed = 1000;
-        let box = document.getElementById("box");
-        let crosshair = document.getElementById("crosshair");
-        
-        function moveBox() {
-            let x = Math.random() * (window.innerWidth - 50);
-            let y = Math.random() * (window.innerHeight - 50);
-            box.style.left = `${x}px`;
-            box.style.top = `${y}px`;
+
+        // Setup crosshair
+        crosshair.classList.add("crosshair");
+        document.body.appendChild(crosshair);
+
+        document.addEventListener("mousemove", (event) => {
+            crosshair.style.left = `${event.clientX - 10}px`;
+            crosshair.style.top = `${event.clientY - 10}px`;
+        });
+
+        function spawnBox() {
+            const box = document.createElement("div");
+            box.classList.add("box");
+            box.style.left = `${Math.random() * (gameArea.clientWidth - 50)}px`;
+            box.style.top = `${Math.random() * (gameArea.clientHeight - 50)}px`;
+            box.addEventListener("click", () => {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+                gameArea.removeChild(box);
+                spawnBox();
+            });
+            gameArea.appendChild(box);
         }
-        
-        box.addEventListener("click", () => {
-            score++;
-            document.getElementById("score").textContent = score;
-            moveBox();
+
+        function spawnClouds() {
+            for (let i = 0; i < 5; i++) {
+                const cloud = document.createElement("div");
+                cloud.classList.add("cloud");
+                cloud.style.left = `${Math.random() * 100}%`;
+                cloud.style.top = `${Math.random() * 30}%`;
+                gameArea.appendChild(cloud);
+            }
+        }
+
+        function spawnBots() {
+            for (let i = 0; i < 3; i++) {
+                const bot = document.createElement("div");
+                bot.classList.add("bot");
+                bot.style.left = `${Math.random() * (gameArea.clientWidth - 50)}px`;
+                bot.style.top = `${Math.random() * (gameArea.clientHeight - 50)}px`;
+                gameArea.appendChild(bot);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            spawnBox();
+            spawnClouds();
+            spawnBots();
         });
-        
-        document.addEventListener("mousemove", (e) => {
-            crosshair.style.left = `${e.clientX - 10}px`;
-            crosshair.style.top = `${e.clientY - 10}px`;
-        });
-        
-        setInterval(moveBox, speed);
-        setInterval(() => {
-            speed *= 0.9; 
-            clearInterval(moveBoxInterval);
-            moveBoxInterval = setInterval(moveBox, speed);
-        }, 10000);
-        
-        let moveBoxInterval = setInterval(moveBox, speed);
     </script>
 </body>
 </html>
