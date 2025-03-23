@@ -41,13 +41,14 @@
         canvas.width = window.innerWidth;
         canvas.height = 400;
         
-        let player, obstacles, gravity, jumpStrength, speed, gameOver;
+        let player, platforms, spikes, gravity, jumpStrength, speed, gameOver;
         
         function init() {
             player = { x: 50, y: 300, width: 30, height: 30, dy: 0, jumping: false };
             gravity = 0.6;
             jumpStrength = -12;
-            obstacles = [];
+            platforms = [];
+            spikes = [];
             speed = 5;
             gameOver = false;
             restartButton.style.display = "none";
@@ -55,8 +56,17 @@
         }
         
         function createObstacle() {
-            let height = 50 + Math.random() * 50;
-            obstacles.push({ x: canvas.width, y: canvas.height - height, width: 30, height: height });
+            let type = Math.random() > 0.5 ? "platform" : "spike";
+            let x = canvas.width;
+            let width = 40;
+            let height = 20;
+            let y = canvas.height - height;
+            
+            if (type === "platform") {
+                platforms.push({ x, y, width, height });
+            } else {
+                spikes.push({ x, y - 20, width, height: 20 });
+            }
         }
         setInterval(createObstacle, 1500);
         
@@ -64,31 +74,51 @@
             if (gameOver) return;
             player.dy += gravity;
             player.y += player.dy;
+            
             if (player.y + player.height > canvas.height) {
                 player.y = canvas.height - player.height;
                 player.jumping = false;
             }
-            obstacles.forEach((obstacle, index) => {
-                obstacle.x -= speed;
+            
+            platforms.forEach(platform => {
+                platform.x -= speed;
                 if (
-                    player.x < obstacle.x + obstacle.width &&
-                    player.x + player.width > obstacle.x &&
-                    player.y < obstacle.y + obstacle.height &&
-                    player.y + player.height > obstacle.y
+                    player.y + player.height > platform.y &&
+                    player.y + player.height < platform.y + platform.height &&
+                    player.x + player.width > platform.x &&
+                    player.x < platform.x + platform.width
+                ) {
+                    player.y = platform.y - player.height;
+                    player.dy = 0;
+                    player.jumping = false;
+                }
+            });
+            
+            spikes.forEach(spike => {
+                spike.x -= speed;
+                if (
+                    player.x < spike.x + spike.width &&
+                    player.x + player.width > spike.x &&
+                    player.y < spike.y + spike.height &&
+                    player.y + player.height > spike.y
                 ) {
                     gameOver = true;
                     restartButton.style.display = "block";
                 }
             });
-            obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > 0);
+            
+            platforms = platforms.filter(platform => platform.x + platform.width > 0);
+            spikes = spikes.filter(spike => spike.x + spike.width > 0);
         }
         
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "cyan";
             ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.fillStyle = "blue";
+            platforms.forEach(platform => ctx.fillRect(platform.x, platform.y, platform.width, platform.height));
             ctx.fillStyle = "red";
-            obstacles.forEach(obstacle => ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height));
+            spikes.forEach(spike => ctx.fillRect(spike.x, spike.y, spike.width, spike.height));
         }
         
         function gameLoop() {
